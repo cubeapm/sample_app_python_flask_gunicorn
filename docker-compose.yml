@@ -3,41 +3,41 @@ services:
   flask_gunicorn:
     build:
       context: .
-    container_name: cube_python_flask_gunicorn
+    container_name: cube_python_flask_gunicorn_flask
     environment:
-      - OTEL_SERVICE_NAME=cube_sample_python_flask
+      - OTEL_SERVICE_NAME=cube_sample_python_flask_gunicorn
       - OTEL_EXPORTER_OTLP_COMPRESSION=gzip
+
+      # print traces on console
       - OTEL_LOG_LEVEL=debug
+      # send traces to CubeAPM
       # - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://host.docker.internal:4317
-
     ports:
-      - "8080:8080"
-
+      - "8000:8000"
     depends_on:
       - mysql
       - redis
       - kafka
+    restart: always
 
   mysql:
-    image: mysql:latest
-    container_name: cube_python_gunicorn_mysql
+    image: mysql:8.0
+    container_name: cube_python_flask_gunicorn_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: your_root_password
-      MYSQL_DATABASE: your_database_name
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
     volumes:
-      - mysql:/var/lib/mysql
+      - cube_python_flask_gunicorn_mysql:/var/lib/mysql
     ports:
       - "3306:3306"
 
-
-
   redis:
     image: redis:alpine3.18
-    container_name: cube_python_gunicorn_redis
+    container_name: cube_python_flask_gunicorn_redis
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: cube_python_gunicorn_kafka
+    container_name: cube_python_flask_gunicorn_kafka
     ports:
       - "9092:9092"
     environment:
@@ -58,7 +58,8 @@ services:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
   kafdrop:
-    image: obsidiandynamics/kafdrop
+    image: obsidiandynamics/kafdrop:4.0.0
+    container_name: cube_python_flask_gunicorn_kafdrop
     depends_on:
       - kafka
     ports:
@@ -67,4 +68,4 @@ services:
       KAFKA_BROKERCONNECT: kafka:29092
 
 volumes:
-  mysql:
+  cube_python_flask_gunicorn_mysql:

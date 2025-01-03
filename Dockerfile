@@ -1,18 +1,25 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y python3-pip
+# Install Python and pip
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /flask
+WORKDIR /app
 
-ADD requirements.txt .
-RUN pip install -r requirements.txt
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-ADD . .
+COPY . .
 
-RUN pip install -r requirements.txt
-
-RUN opentelemetry-bootstrap -a install
+ENV FLASK_APP=app.py
+ENV DD_SERVICE="trace_processor"
+ENV DD_ENV="prod"
+ENV DD_VERSION="1.0"
 
 EXPOSE 8000
 
-CMD ["gunicorn", "app:app", "-c", "gunicorn.conf.py"]
+# Use ddtrace-run to automatically instrument the application
+ENTRYPOINT ["ddtrace-run"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]

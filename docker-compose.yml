@@ -1,19 +1,25 @@
 version: "3"
-services:
-  flask_gunicorn:
-    build:
-      context: .
-    container_name: cube_python_flask_gunicorn_flask
-    environment:
-      - OTEL_SERVICE_NAME=cube_sample_python_flask_gunicorn
-      - OTEL_EXPORTER_OTLP_COMPRESSION=gzip
 
-      # print traces on console
-      - OTEL_LOG_LEVEL=debug
-      # send traces to CubeAPM
-      # - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://host.docker.internal:4318/v1/traces
+services:
+  app:
+    build: .
     ports:
       - "8000:8000"
+    environment:
+      - DD_AGENT_HOST=192.168.20.243
+      - DD_TRACE_AGENT_PORT=3130
+      - DD_SERVICE=trace_processor
+      - DD_ENV=prod
+      - DD_VERSION=1.0
+      - DD_TRACE_DEBUG=true
+      - DD_TRACE_REDIS_ENABLED=true
+      - DD_TRACE_REDIS_SERVICE=redis-service
+      - DD_TRACE_REDIS_ANALYTICS_ENABLED=true
+      - DD_TRACE_KAFKA_ENABLED=true
+      - DD_TRACE_KAFKA_SERVICE=kafka-service
+      - DD_KAFKA_CLIENT_PROPAGATION_ENABLED=true
+      - DD_DATA_STREAMS_ENABLED=true
+      - DD_TRACE_SAMPLE_RATE=1.0
     depends_on:
       - mysql
       - redis
@@ -56,16 +62,6 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop:4.0.0
-    container_name: cube_python_flask_gunicorn_kafdrop
-    depends_on:
-      - kafka
-    ports:
-      - 19000:9000
-    environment:
-      KAFKA_BROKERCONNECT: kafka:29092
 
 volumes:
   cube_python_flask_gunicorn_mysql:

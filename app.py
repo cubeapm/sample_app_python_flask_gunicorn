@@ -2,26 +2,20 @@ import mysql.connector
 import requests
 import socket
 from flask import Flask
-from kafka import KafkaProducer, KafkaConsumer
+from confluent_kafka import Producer, Consumer
 from redis import Redis, asyncio as aioredis
+from ddtrace import patch_all, tracer
 
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.kafka import KafkaInstrumentor
-from opentelemetry.instrumentation.mysql import MySQLInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
+# Configure Datadog tracer
+tracer.configure(
+    hostname="192.168.20.243",
+    port=3130,
+)
 
+# Enable automatic instrumentation for all libraries
+patch_all()
 
 app = Flask(__name__)
-FlaskInstrumentor().instrument_app(app)
-MySQLInstrumentor().instrument()
-KafkaInstrumentor().instrument()
-RedisInstrumentor().instrument()
-RequestsInstrumentor().instrument()
-# Additional instrumentation can be enabled by
-# following the docs for respective instrumentations at
-# https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation
-
 
 # MySQLInstrumentor() instruments the connect() method, so the import statement must be
 # import mysql.connector
@@ -29,16 +23,31 @@ RequestsInstrumentor().instrument()
 cnx = mysql.connector.connect(
     user='root', password='root', host='mysql', database='test')
 
-redis_conn = Redis(host='redis', port=6379, decode_responses=True)
+# Redis connection with service name in the client name
+redis_conn = Redis(
+    host='redis', 
+    port=6379, 
+    db=0,
+    decode_responses=True,
+    client_name="redis-service"  # This helps identify the service in traces
+)
 aioredis_conn = aioredis.from_url("redis://redis")
 
-kafka_producer = KafkaProducer(
-    bootstrap_servers='kafka:9092', client_id=socket.gethostname())
-kafka_producer.send('sample_topic', b'raw_bytes')
+# Configure Kafka producer with Confluent Kafka
+producer_config = {
+    'bootstrap.servers': 'kafka:29092',
+    'client.id': 'kafka-producer-service'
+}
+kafka_producer = Producer(producer_config)
 
-kafka_consumer = KafkaConsumer(
-    bootstrap_servers='kafka:9092', group_id='foo', auto_offset_reset='smallest')
-
+# Configure Kafka consumer with Confluent Kafka
+consumer_config = {
+    'bootstrap.servers': 'kafka:29092',
+    'group.id': 'trace-processor-group',
+    'client.id': 'kafka-consumer-service',
+    'auto.offset.reset': 'earliest'
+}
+kafka_consumer = Consumer(consumer_config)
 
 @app.get("/")
 def home():
@@ -83,7 +92,7 @@ async def aioredis():
 
 @app.get('/kafka/produce')
 def kafka_produce():
-    kafka_producer.send('sample_topic', b'raw_bytes')
+    kafka_producer.produce('sample_topic', value=b'raw_bytes')
     kafka_producer.flush()
     return "Kafka produced"
 
@@ -91,6 +100,15 @@ def kafka_produce():
 @app.get('/kafka/consume')
 def kafka_consume():
     kafka_consumer.subscribe(['sample_topic'])
-    for msg in kafka_consumer:
-        return str(msg)
-    return "no message"
+    msg = kafka_consumer.poll(1.0)
+    if msg is None:
+        return "no message"
+    return str(msg.value())
+
+
+@app.get('/redis/test')
+def redis_test():
+    with tracer.trace("redis.test") as span:
+        result = redis_conn.set('test_key', 'test_value')
+        span.set_tag("redis.command", "SET")
+        return f"Redis test result: {result}"

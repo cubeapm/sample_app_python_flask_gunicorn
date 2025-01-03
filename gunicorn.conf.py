@@ -1,12 +1,12 @@
 import os
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-    SimpleSpanProcessor,
-)
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+# from opentelemetry import trace
+# from opentelemetry.sdk.trace import TracerProvider
+# from opentelemetry.sdk.trace.export import (
+#     BatchSpanProcessor,
+#     ConsoleSpanExporter,
+#     SimpleSpanProcessor,
+# )
+# from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 bind = "0.0.0.0:8000"
 
@@ -26,13 +26,21 @@ access_log_format = (
 )
 
 
-def post_fork(server, worker):
-    server.log.info("Worker spawned (pid: %s)", worker.pid)
+# def post_fork(server, worker):
+#     server.log.info("Worker spawned (pid: %s)", worker.pid)
 
-    provider = TracerProvider()
-    if os.getenv('OTEL_LOG_LEVEL', '') == 'debug':
-        processor = SimpleSpanProcessor(ConsoleSpanExporter())
-    else:
-        processor = BatchSpanProcessor(OTLPSpanExporter())
-    provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
+#     provider = TracerProvider()
+#     if os.getenv('OTEL_LOG_LEVEL', '') == 'debug':
+#         processor = SimpleSpanProcessor(ConsoleSpanExporter())
+#     else:
+#         processor = BatchSpanProcessor(OTLPSpanExporter())
+#     provider.add_span_processor(processor)
+#     trace.set_tracer_provider(provider)
+
+# Enable Datadog trace sampling
+def post_fork(server, worker):
+    from ddtrace import tracer
+    tracer.configure(
+        hostname="192.168.20.243",  # Updated to your specific host
+        port=3130,                  # Updated to your specific port
+    )

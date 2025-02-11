@@ -11,8 +11,8 @@ from opentelemetry.instrumentation.mysql import MySQLInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
-
 app = Flask(__name__)
+
 FlaskInstrumentor().instrument_app(app)
 MySQLInstrumentor().instrument()
 KafkaInstrumentor().instrument()

@@ -33,7 +33,7 @@ docker compose up --build
 
 Django app will now be available at `http://localhost:8000`.
 
-The app has various API endpoints to demonstrate integrations with Redis, MySQL,Kafka, etc. Check out [app.py](app.py) for the list of API endpoints.
+The app has various API endpoints to demonstrate integrations with Redis, MySQL, Kafka, etc. Check out [app.py](app.py) for the list of API endpoints.
 
 # Contributing
 

@@ -1,3 +1,15 @@
+# New Relic Instrumentation
+
+This branch contains code for New Relic instrumentation.
+
+CubeAPM works with New Relic agents as described in [using CubeAPM with New Relic agents](https://docs.cubeapm.com/instrumentation#using-cubeapm-with-new-relic-agents).
+
+For testing, **ngrok** can be used in place of load balancer. Run `ngrok http 3130` to create a tunnel and use the domain name provided by ngrok to set `NEW_RELIC_HOST=xxxx.ngrok-free.app` in [docker-compose.yml](docker-compose.yml).
+
+Refer the project README below for more details.
+
+---
+
 # Python Flask Gunicorn Instrumentation
 
 This is a sample app to demonstrate how to instrument Python Flask Gunicorn app with **New Relic** and **OpenTelemetry**. It contains source code for the Flask app which interacts with various services like Redis, MySQL, Kafka, etc. to demonstrate tracing for these services. This repository has a docker compose file to set up all these services conveniently.
@@ -23,7 +35,7 @@ docker compose up --build
 
 Django app will now be available at `http://localhost:8000`.
 
-The app has various API endpoints to demonstrate integrations with Redis, MySQL,Kafka, etc. Check out [app.py](app.py) for the list of API endpoints.
+The app has various API endpoints to demonstrate integrations with Redis, MySQL, Kafka, etc. Check out [app.py](app.py) for the list of API endpoints.
 
 # Contributing
 

@@ -4,6 +4,11 @@ services:
     build:
       context: .
     container_name: cube_python_flask_gunicorn_flask
+    environment:
+      # New Relic agent will send data on https://<domain_of_cubeapm_server>:443
+      - NEW_RELIC_HOST=<domain_of_cubeapm_server>
+      - NEW_RELIC_APP_NAME=cube_sample_python_flask_gunicorn_newrelic
+      - NEW_RELIC_LICENSE_KEY=ABC4567890ABC4567890ABC4567890ABC4567890
     ports:
       - "8000:8000"
     depends_on:

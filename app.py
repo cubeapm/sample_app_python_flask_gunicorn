@@ -1,12 +1,15 @@
 import mysql.connector
 import requests
 import socket
+import newrelic.agent
 from flask import Flask
 from kafka import KafkaProducer, KafkaConsumer
 from redis import Redis, asyncio as aioredis
 
 
 app = Flask(__name__)
+
+newrelic.agent.initialize()
 
 cnx = mysql.connector.connect(
     user='root', password='root', host='mysql', database='test')

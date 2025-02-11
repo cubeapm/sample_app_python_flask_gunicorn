@@ -69,3 +69,4 @@ services:
 
 volumes:
   cube_python_flask_gunicorn_mysql:
+  

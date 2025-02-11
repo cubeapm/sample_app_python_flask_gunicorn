@@ -11,8 +11,6 @@ ADD . .
 
 RUN pip install -r requirements.txt
 
-RUN opentelemetry-bootstrap -a install
-
 EXPOSE 8000
 
 CMD ["gunicorn", "app:app", "-c", "gunicorn.conf.py"]

@@ -5,27 +5,9 @@ from flask import Flask
 from kafka import KafkaProducer, KafkaConsumer
 from redis import Redis, asyncio as aioredis
 
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.kafka import KafkaInstrumentor
-from opentelemetry.instrumentation.mysql import MySQLInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-
 
 app = Flask(__name__)
-FlaskInstrumentor().instrument_app(app)
-MySQLInstrumentor().instrument()
-KafkaInstrumentor().instrument()
-RedisInstrumentor().instrument()
-RequestsInstrumentor().instrument()
-# Additional instrumentation can be enabled by
-# following the docs for respective instrumentations at
-# https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation
 
-
-# MySQLInstrumentor() instruments the connect() method, so the import statement must be
-# import mysql.connector
-# and then mysql.connector.connect() must be called.
 cnx = mysql.connector.connect(
     user='root', password='root', host='mysql', database='test')
 

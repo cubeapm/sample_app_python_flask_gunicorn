@@ -1,12 +1,20 @@
 import mysql.connector
 import requests
 import socket
+# import logging
 from flask import Flask
 from kafka import KafkaProducer, KafkaConsumer
 from redis import Redis, asyncio as aioredis
+from elasticapm.contrib.flask import ElasticAPM
 
 
 app = Flask(__name__)
+apm = ElasticAPM(app)
+
+# If using ELASTIC_APM_LOG_FILE to check agent debug logs, 
+# The following may need to be uncommented to see the logs.
+
+# logging.basicConfig()
 
 cnx = mysql.connector.connect(
     user='root', password='root', host='mysql', database='test')

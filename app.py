@@ -4,12 +4,17 @@ import socket
 from flask import Flask
 from kafka import KafkaProducer, KafkaConsumer
 from redis import Redis, asyncio as aioredis
+# from werkzeug.exceptions import HTTPException
 
+# from opentelemetry import trace
+# from opentelemetry.trace import Status, StatusCode
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.kafka import KafkaInstrumentor
 from opentelemetry.instrumentation.mysql import MySQLInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+# tracer = trace.get_tracer("cube_sample_python_flask_gunicorn.tracer")
 
 app = Flask(__name__)
 
@@ -94,3 +99,21 @@ def kafka_consume():
     for msg in kafka_consumer:
         return str(msg)
     return "no message"
+
+
+# def handle_unhandled_exception(ex):
+#     # If you are using Flask's global exception handling, then
+#     # you may need to take some extra steps as below to ensure
+#     # that the exceptions get captured.
+#     current_span = trace.get_current_span()
+#     if current_span:
+#         if not isinstance(ex, HTTPException) or ex.code >= 500:
+#             current_span.record_exception(ex)
+#             current_span.set_status(Status(StatusCode.ERROR))
+
+#     # your exception handling logic below
+#     print(ex)
+#     return ''
+
+
+# app.register_error_handler(Exception, handle_unhandled_exception)

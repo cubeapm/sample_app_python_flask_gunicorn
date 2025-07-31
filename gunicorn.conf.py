@@ -1,13 +1,21 @@
 import os
 from opentelemetry import trace
-from opentelemetry.semconv.resource import ResourceAttributes
-from opentelemetry.sdk.trace import TracerProvider, Resource
+from opentelemetry.sdk import resources
+from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
     SimpleSpanProcessor,
 )
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry import metrics
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import (
+    ConsoleMetricExporter,
+    PeriodicExportingMetricReader,
+)
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.instrumentation.system_metrics import SystemMetricsInstrumentor
 from socket import gethostname
 
 bind = "0.0.0.0:8000"
@@ -31,13 +39,28 @@ access_log_format = (
 def post_fork(server, worker):
     server.log.info("Worker spawned (pid: %s)", worker.pid)
 
-    provider = TracerProvider(resource=Resource({
-      ResourceAttributes.SERVICE_NAME: os.environ['OTEL_SERVICE_NAME'],
-      ResourceAttributes.HOST_NAME: gethostname() or 'UNSET',
-   }))
+    resource = resources.Resource.create({
+        resources.HOST_NAME: gethostname() or 'UNSET',
+    })
+
     if os.getenv('OTEL_LOG_LEVEL', '') == 'debug':
-        processor = SimpleSpanProcessor(ConsoleSpanExporter())
+        trace_processor = SimpleSpanProcessor(ConsoleSpanExporter())
     else:
-        processor = BatchSpanProcessor(OTLPSpanExporter())
-    provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
+        trace_processor = BatchSpanProcessor(OTLPSpanExporter())
+    trace_provider = TracerProvider(
+        resource=resource,
+        active_span_processor=trace_processor
+    )
+    trace.set_tracer_provider(trace_provider)
+
+    if os.getenv('OTEL_LOG_LEVEL', '') == 'debug':
+        metric_exporter = ConsoleMetricExporter()
+    else:
+        metric_exporter = OTLPMetricExporter()
+    metric_reader = PeriodicExportingMetricReader(exporter=metric_exporter)
+    meter_provider = MeterProvider(
+        resource=resource,
+        metric_readers=[metric_reader]
+    )
+    metrics.set_meter_provider(meter_provider)
+    SystemMetricsInstrumentor().instrument()

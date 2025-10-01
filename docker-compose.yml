@@ -16,9 +16,9 @@ services:
       # Not needed for production - https://www.elastic.co/guide/en/apm/agent/python/current/configuration.html#config-debug
       - ELASTIC_APM_DEBUG=True
 
-      # Print Elastic agent logs on screen (also see app.py for additional requirements)
+      # Print Elastic agent logs on screen
       # - ELASTIC_APM_LOG_FILE=stdout
-      # Set Elastic agent log level to debug if needed to see detailed logs
+      # Set Elastic agent log level to debug if needed to see detailed logs (also see app.py for additional requirements)
       # - ELASTIC_APM_LOG_LEVEL=debug    
     ports:
       - "8000:8000"

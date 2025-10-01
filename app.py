@@ -11,7 +11,7 @@ from elasticapm.contrib.flask import ElasticAPM
 app = Flask(__name__)
 apm = ElasticAPM(app)
 
-# If using ELASTIC_APM_LOG_FILE to check agent debug logs, 
+# If using ELASTIC_APM_LOG_LEVEL to check agent debug logs, 
 # The following may need to be uncommented to see the logs.
 
 # logging.basicConfig()

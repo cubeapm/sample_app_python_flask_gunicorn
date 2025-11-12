@@ -8,6 +8,9 @@ services:
       - OTEL_SERVICE_NAME=cube_sample_python_flask_gunicorn_otel
       - OTEL_EXPORTER_OTLP_COMPRESSION=gzip
 
+      # optional settings
+      - OTEL_RESOURCE_ATTRIBUTES=cube.environment=UNSET,service.version=1.2.3,mykey1=myvalue1,mykey2=myvalue2
+
       # print traces and metrics on console
       - OTEL_LOG_LEVEL=debug
       # send traces and metrics to CubeAPM

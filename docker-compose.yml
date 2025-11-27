@@ -9,8 +9,13 @@ services:
       # send traces to CubeAPM
       - DD_TRACE_AGENT_URL=http://host.docker.internal:3130
 
+      # Enable Runtime mertrics
+      - DD_AGENT_HOST=datadog-agent
+      - DD_RUNTIME_METRICS_ENABLED=true
+      - DD_RUNTIME_METRICS_RUNTIME_ID_ENABLED=true
+
       # optional settings
-      # - DD_ENV=myenv
+      - DD_ENV=myenv
       # - DD_VERSION=1.2.3
       # - DD_TAGS=mykey1:myvalue1,mykey2:myvalue2
 
@@ -24,6 +29,7 @@ services:
       - mysql
       - redis
       - kafka
+      - datadog-agent
     restart: always
 
   mysql:
@@ -72,6 +78,25 @@ services:
       - 19000:9000
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
+
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest   # or datadog/agent:latest
+    container_name: datadog-agent
+    environment:
+      # Required
+      - DD_API_KEY=<your_datadog_key>              # your Datadog API key
+      - DD_DD_URL=http://host.docker.internal:3130
+
+      # Metrics
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true      # accept DogStatsD metrics from other containers
+      - DD_DOGSTATSD_PORT=8125
+
+    ports:
+      - "8125:8125/udp"    # DogStatsD (metrics)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
 
 volumes:
   cube_python_flask_gunicorn_mysql:

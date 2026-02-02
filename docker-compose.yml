@@ -13,6 +13,14 @@ services:
       # (optional) to get garbage collection metrics
       - NEW_RELIC_GC_RUNTIME_METRICS_ENABLED=true
 
+      # process logs
+      - NEW_RELIC_APPLICATION_LOGGING_ENABLED=true
+      # do not send logs directly to CubeAPM
+      - NEW_RELIC_APPLICATION_LOGGING_FORWARDING_ENABLED=false
+      # add the following to logs
+      # NR-LINKING|{app_guid}|{hostname}|{trace_id}|{span_id}|{app_name}|
+      - NEW_RELIC_APPLICATION_LOGGING_LOCAL_DECORATING_ENABLED=true
+
       # Print New Relic agent logs on screen
       # - NEW_RELIC_LOG=stdout
       # Set New Relic agent log level to debug if needed to see detailed logs

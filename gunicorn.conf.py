@@ -1,3 +1,4 @@
+import logging
 import os
 from opentelemetry import trace
 from opentelemetry.sdk import resources
@@ -65,3 +66,48 @@ def post_fork(server, worker):
     )
     metrics.set_meter_provider(meter_provider)
     SystemMetricsInstrumentor().instrument()
+
+    # Add logger handler to inject service name and trace id in logs
+    handler = logging.StreamHandler()
+    handler.addFilter(TraceContextFilter())
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)s "
+        "[service=%(service_name)s] "
+        "[trace_id=%(trace_id)s] [span_id=%(span_id)s] "
+        "%(name)s %(message)s"
+    )
+    handler.setFormatter(formatter)
+    root = logging.getLogger()
+    # By default, only WARNING and above logs are printed. We can
+    # change the minimum level if we want.
+    # root.setLevel(logging.INFO)
+    root.addHandler(handler)
+
+
+# Class to add service name, trace_id, etc. to log context
+class TraceContextFilter(logging.Filter):
+    def __init__(self):
+        super().__init__()
+
+        provider = trace.get_tracer_provider()
+        resource = getattr(provider, "resource", None)
+
+        self.service_name = (
+            resource.attributes.get(resources.SERVICE_NAME)
+            if resource else None
+        )
+
+    def filter(self, record):
+        span = trace.get_current_span()
+        ctx = span.get_span_context()
+
+        record.service_name = self.service_name or "UNSET"
+
+        if ctx.is_valid:
+            record.trace_id = format(ctx.trace_id, "032x")
+            record.span_id = format(ctx.span_id, "016x")
+        else:
+            record.trace_id = ""
+            record.span_id = ""
+
+        return True

@@ -1,3 +1,4 @@
+import logging
 import mysql.connector
 import requests
 import socket
@@ -6,6 +7,7 @@ from flask import Flask
 from kafka import KafkaProducer, KafkaConsumer
 from redis import Redis, asyncio as aioredis
 
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -27,6 +29,7 @@ kafka_consumer = KafkaConsumer(
 
 @app.get("/")
 def home():
+    logger.warning("home endpoint called")
     return "Hello"
 
 
@@ -37,6 +40,7 @@ def param(param):
 
 @app.route("/exception")
 def exception():
+    logger.error("exception endpoint called")
     raise Exception("Sample exception")
 
 

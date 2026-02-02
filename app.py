@@ -1,3 +1,4 @@
+import logging
 import mysql.connector
 import requests
 import socket
@@ -15,6 +16,8 @@ from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 # tracer = trace.get_tracer("cube_sample_python_flask_gunicorn.tracer")
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -47,6 +50,7 @@ kafka_consumer = KafkaConsumer(
 
 @app.get("/")
 def home():
+    logger.warning("home endpoint called")
     return "Hello"
 
 
@@ -57,6 +61,7 @@ def param(param):
 
 @app.route("/exception")
 def exception():
+    logger.error("exception endpoint called")
     raise Exception("Sample exception")
 
 
